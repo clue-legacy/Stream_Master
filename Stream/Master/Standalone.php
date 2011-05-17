@@ -106,7 +106,7 @@ class Stream_Master_Standalone extends Stream_Master{
         if($key === false){
             throw new Exception('Invalid client handle');
         }
-        unset($this->slaves[$key]);
+        unset($this->clients[$key]);
         
         $this->events->fireEvent('clientDisconnect',$slave);
     }
