@@ -31,32 +31,53 @@ class Stream_Master_Standalone extends Stream_Master{
         $this->events = new EventEmitter();
     }
     
+    /**
+     * add event handler
+     * 
+     * @param string   $name
+     * @param callback $function
+     * @return Worker_Master_Standalone $this (chainable)
+     */
     public function addEvent($name,$function){
         $this->events->addEvent($name,$function);
         return $this;
     }
     
+    /**
+     * get internal ID for given client
+     * 
+     * @param mixed $client
+     * @return int
+     * @throws Stream_Master_Exception when given client does not exist
+     */
     public function getClientId($client){
-        /*foreach($this->clients as $id=>$c){
-            if($c === $client){
-                return $id;
-            }
-        }
-        throw new Exception('Invalid client given');*/
-        
         $key = array_search($client,$this->clients,true);
         if($key === false){
-            throw new Exception('Invalid client given');
+            throw new Stream_Master_Exception('Invalid client given');
         }
         return $key;
     }
     
+    /**
+     * add new client
+     * 
+     * @param mixed $client resource or instance providing getStream()/getStreamReceive()/getStreamSend()
+     * @return mixed
+     * @throws Stream_Master_Exception when given client is invalid
+     */
     public function addClient($client){
-        //$id = max(max(array_keys($this->clients)+1,0));
+        $this->getClientStreamRead($client); // just call to make sure client has read/write streams available 
+        $this->getClientStreamWrite($client);
+        
         $this->clients[] = $client;
         return $client;
     }
     
+    /**
+     * get array with all clients
+     * 
+     * @return array
+     */
     public function getClients(){
         return $this->clients;
     }
