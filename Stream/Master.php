@@ -15,8 +15,8 @@ abstract class Stream_Master{
      * @param float|NULL $timeout maximum(!) timeout in seconds to wait, NULL = wait forever
      * @throws Stream_Master_Exception on error
      * @uses Stream_Master::getStreamClients() to get all client streams (incoming and outgoing)
+     * @uses Interface_Stream_Duplex::getStream() to get bi-directional incoming/outgoing client stream
      * @uses Interface_Stream_Duplex::getStreamReceive() to get incoming client stream
-     * @uses Interface_Stream_Duplex::hasStreamOutgoing() to check whether client has data to send
      * @uses Interface_Stream_Duplex::getStreamSend() to get outgoing client stream (if there's data to send)
      * @uses Stream_Master::getStreamPorts() to get additional ports for check for new incoming client connections
      * @uses Stream_Master::streamClientSend() when data is ready to be sent
@@ -31,9 +31,11 @@ abstract class Stream_Master{
         $oread   = array();
         $owrite  = array();
         foreach($clients as $id=>$client){                                      // cycle through clients to initialize streams
-            $oread[$id] = $client->getStreamReceive();
-            if($client->hasStreamOutgoing()){
-                $owrite[$id] = $client->getStreamSend();
+            if(($r = $this->getClientStreamRead($client)) !== NULL){
+                $oread[$id] = $r;
+            }
+            if(($w = $this->getClientStreamWrite($client)) !== NULL){
+                $owrite[$id] = $w;
             }
         }
         
@@ -65,7 +67,7 @@ abstract class Stream_Master{
             }
             
             $client = $clients[$id];
-            if($this->streamClientSend($client) === false){                     // nothing sent => disconnect
+            if($this->streamClientSend($client,$stream) === false){             // nothing sent => disconnect
                 $this->streamClientDisconnect($client);
             }
         }
@@ -74,7 +76,7 @@ abstract class Stream_Master{
             $id = array_search($stream,$oread,true);
             if($id >= 0){                                                       // id found in read streams
                 $client = $clients[$id];
-                if($this->streamClientReceive($client) === false){              // nothing read => disconnect
+                if($this->streamClientReceive($client,$stream) === false){      // nothing read => disconnect
                     $this->streamClientDisconnect($client);
                 }
             }else if($id < 0){                                                  // port socket => new connection
@@ -114,7 +116,7 @@ abstract class Stream_Master{
      * @param Interface_Stream_Duplex $client
      * @return mixed return (boolean)false when no data can be sent
      */
-    protected function streamClientSend($client){
+    protected function streamClientSend($client,$stream){
         return $client->send();
     }
     
@@ -127,7 +129,7 @@ abstract class Stream_Master{
      * @param Interface_Stream_Duplex $client
      * @return mixed return '(boolean)false' when no data can be sent
      */
-    protected function streamClientReceive($client){
+    protected function streamClientReceive($client,$stream){
         return $client->receive();
     }
     
@@ -153,4 +155,47 @@ abstract class Stream_Master{
      * @param resource $port         port the connection was established on
      */
     abstract protected function streamClientConnect($clientStream,$port);
+    
+    /**
+     * get readable stream resource for given client
+     * 
+     * @param mixed $client
+     * @return resource|NULL
+     */
+    protected function getClientStreamRead($client){
+        if(is_resource($client)){
+            return $client;
+        }else if(is_callable(array($client,'getStreamReceive'))){
+            return $client->getStreamReceive();
+        }else if(is_callable(array($client,'getStreamRead'))){
+            return $client->getStreamRead();
+        }else if(is_callable(array($client,'getStream'))){
+            return $client->getStream();
+        }else{
+            throw new Stream_Master_Exception('Unable to determine read stream for given client'); 
+        }
+    }
+    
+    /**
+     * get writeable stream resource for given client
+     * 
+     * @param mixed $client
+     * @return resource|NULL
+     */
+    protected function getClientStreamWrite($client){
+        if(is_resource($client)){
+            return $client;
+        }else if(is_callable(array($client,'getStreamSend'))){
+            if(is_callable(array($client,'hasStreamOutgoing')) && !$client->hasStreamOutgoing()){
+                return NULL;
+            }
+            return $client->getStreamSend();
+        }else if(is_callable(array($client,'getStreamWrite'))){
+            return $client->getStreamWrite();
+        }else if(is_callable(array($client,'getStream'))){
+            return $client->getStream();
+        }else{
+            throw new Stream_Master_Exception('Unable to determine write stream for given client'); 
+        }
+    }
 }
