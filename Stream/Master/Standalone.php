@@ -120,15 +120,30 @@ class Stream_Master_Standalone extends Stream_Master{
         return $stream;
     }
     
+    /**
+     * get array of listening ports
+     * 
+     * @return array
+     */
     public function getPorts(){
         return $this->ports;
     }
     
-    public function startOnce($timeout){
-        //echo 'selectOnce'.NL;
-        return $this->streamSelect($timeout);
+    /**
+     * wait for new events on all clients+ports
+     * 
+     * @param float|NULL $timeout maximum timeout in seconds (NULL=wait forever)
+     * @uses Worker_Master::streamSelect()
+     */
+    public function startOnce($timeout=NULL){
+        $this->streamSelect($timeout);
     }
     
+    /**
+     * start event loop and wait for events
+     * 
+     * @uses Worker_Master::streamSelect()
+     */
     public function start(){
         while(true){
             $this->streamSelect();
