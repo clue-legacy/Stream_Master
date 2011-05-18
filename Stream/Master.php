@@ -3,7 +3,12 @@
 /**
  * abstract base class simplifying sending and receiving to/from multiple client streams
  * 
- * @author mE
+ * @author Christian Lück <christian@lueck.tv>
+ * @copyright Copyright (c) 2011, Christian Lück
+ * @license http://www.opensource.org/licenses/mit-license MIT License
+ * @package Stream_Master
+ * @version v0.0.1
+ * @link https://github.com/clue/Stream_Master
  */
 abstract class Stream_Master{
     /**
