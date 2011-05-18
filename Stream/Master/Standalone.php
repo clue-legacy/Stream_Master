@@ -82,15 +82,42 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this->clients;
     }
     
-    public function addPort($port){
-        $ip = '127.0.0.1';
-        $address = 'tcp://'.$ip.':'.$port;
-        $stream = stream_socket_server($address,$errno,$errstr);
+    /**
+     * add new listening port
+     * 
+     * @param int|string    $address port to listen to
+     * @param NULL|resource $context stream context to use
+     * @param NULL|int      $backlog maximum size of incoming connection queue
+     * @return resource listing stream port
+     * @throws Stream_Master_Exception on error
+     * @uses stream_context_create() for optional backlog parameter
+     * @uses stream_socket_server() to create new server port
+     * @see socket_listen() for more information on backlog parameter
+     * @link http://www.php.net/manual/en/transports.php
+     */
+    public function addPort($address=0,$context=NULL,$backlog=NULL){
+        if(is_int($address)){
+            $address = 'tcp://127.0.0.1:'.$address;
+        }else if(preg_match('/^(?<protocol>tcp|udp)\:\/\/(?<port>\d+)$/',$address,$match)){
+            $address = $match['protocol'].'://127.0.0.1:'.$match['port'];
+        }
+        
+        if($context === NULL){
+            $context = stream_context_create();
+        }
+        if($backlog !== NULL){
+            stream_context_set_option($context,'socket','backlog',$backlog);
+        }
+        $flags = STREAM_SERVER_BIND;
+        if(!in_array(substr($address,0,6),array('udp://','udg://'))){
+            $flags |= STREAM_SERVER_LISTEN;
+        }
+        $stream = stream_socket_server($address,$errno,$errstr,$flags,$context);
         if($stream === false){
             throw new Worker_Exception('Unable to start server on '.Debug::param($address));
         }
         $this->ports[] = $stream;
-        return $this;
+        return $stream;
     }
     
     public function getPorts(){
