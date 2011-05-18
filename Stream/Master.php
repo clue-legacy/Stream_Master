@@ -80,11 +80,15 @@ abstract class Stream_Master{
                     $this->streamClientDisconnect($client);
                 }
             }else if($id < 0){                                                  // port socket => new connection
-                $cstream = stream_socket_accept($stream,1.0);
-                if($cstream === false){
-                    throw new Stream_Master_Exception('Unable to accept new connection');
+                if($this->isPortDatagram($stream)){
+                    $this->streamPortDatagram($stream);
+                }else{
+                    $cstream = stream_socket_accept($stream,1.0);
+                    if($cstream === false){
+                        throw new Stream_Master_Exception('Unable to accept new connection');
+                    }
+                    $this->streamClientConnect($cstream,$stream);
                 }
-                $this->streamClientConnect($cstream,$stream);
             }else{
                 throw new Stream_Master_Exception('Invalid stream to read from');
             }
@@ -155,6 +159,32 @@ abstract class Stream_Master{
      * @param resource $port         port the connection was established on
      */
     abstract protected function streamClientConnect($clientStream,$port);
+    
+    /**
+     * called when a datagram (UDP/UDG) is available on the given port
+     * 
+     * @param resource $port
+     */
+    protected function streamPortDatagram($port){
+        throw new Stream_Master_Exception('No datagram handler');
+        /*
+        // example code
+        $request = stream_socket_recvfrom($port,1000,0,$address);
+        $response = $address.': '.$request;
+        stream_socket_sendto($port,$response,0,$address);
+        */
+    }
+    
+    /**
+     * returns whether the given port resource is a datagram port
+     * 
+     * @param resource $port
+     * @return boolean true=datagram port (UDP/UDG), false=stream port (TCP/unix)
+     */
+    protected function isPortDatagram($port){
+        $meta = stream_get_meta_data($port);
+        return ($meta['stream_type'] === 'udp_socket' || $meta['stream_type'] === 'udg_socket');
+    }
     
     /**
      * get readable stream resource for given client
