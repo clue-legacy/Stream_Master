@@ -153,41 +153,56 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * called when a new slave has connected
      * 
-     * @param resource $socket
+     * @param resource $stream
+     * @param resource $port
      */
-    protected function streamClientConnect($socket,$unused){
-        $this->events->fireEvent('clientConnect',$socket,$unused);
+    protected function streamClientConnect($stream,$port){
+        $this->events->fireEvent('clientConnect',$stream,$port);
     }
     
     /**
      * called when a slave has been disconnected
      * 
-     * @param Worker_Slave $slav
+     * @param mixed $client
      */
-    protected function streamClientDisconnect($slave){
-        $key = array_search($slave,$this->clients,true);
+    protected function streamClientDisconnect($client){
+        $key = array_search($client,$this->clients,true);
         if($key === false){
             throw new Exception('Invalid client handle');
         }
         unset($this->clients[$key]);
         
-        $this->events->fireEvent('clientDisconnect',$slave);
+        $this->events->fireEvent('clientDisconnect',$client);
     }
     
-    protected function streamClientSend($slave){
+    /**
+     * called when a client can send data
+     * 
+     * @param mixed    $client
+     * @param resource $stream
+     * @return mixed false=disconnect
+     */
+    protected function streamClientSend($client,$stream){
         try{
-            $slave->streamSend();
+            $this->events->fireEvent('clientWrite',$client,$stream);
         }
-        catch(Worker_Disconnect_Exception $e){
+        catch(Stream_Master_Exception $e){
             return false;
         }
     }
     
-    protected function streamClientReceive($slave){
+    /**
+     * calls when a client can receive data
+     * 
+     * @param mixed    $client
+     * @param resource $stream
+     * @return mixed false=disconnect
+     */
+    protected function streamClientReceive($client,$stream){
         try{
-            $slave->streamReceive();
+            $this->events->fireEvent('clientRead',$client,$stream);
         }
-        catch(Worker_Disconnect_Exception $e){
+        catch(Stream_Master_Exception $e){
             return false;
         }
     }
