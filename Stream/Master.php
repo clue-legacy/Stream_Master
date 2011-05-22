@@ -20,9 +20,8 @@ abstract class Stream_Master{
      * @param float|NULL $timeout maximum(!) timeout in seconds to wait, NULL = wait forever
      * @throws Stream_Master_Exception on error
      * @uses Stream_Master::getStreamClients() to get all client streams (incoming and outgoing)
-     * @uses Interface_Stream_Duplex::getStream() to get bi-directional incoming/outgoing client stream
-     * @uses Interface_Stream_Duplex::getStreamReceive() to get incoming client stream
-     * @uses Interface_Stream_Duplex::getStreamSend() to get outgoing client stream (if there's data to send)
+     * @uses Stream_Master::getClientStreamRead() to get incoming client stream
+     * @uses Stream_Master::getClientStreamWrite() to get outgoing client stream
      * @uses Stream_Master::getStreamPorts() to get additional ports for check for new incoming client connections
      * @uses Stream_Master::streamClientSend() when data is ready to be sent
      * @uses Stream_Master::streamClientReceive() when data is ready to be received
@@ -44,9 +43,9 @@ abstract class Stream_Master{
             }
         }
         
-        $id = -1;
-        foreach((array)$this->getStreamPorts() as $port){                       // listen on all ports for new connections
-            $oread[$id--] = $port;
+        $ports = (array)$this->getStreamPorts();
+        foreach($ports as $port){                                               // listen on all ports for new connections
+            $oread[] = $port;
         }
         
         $ssleep  = NULL;
@@ -79,12 +78,15 @@ abstract class Stream_Master{
         
         foreach($read as $stream){
             $id = array_search($stream,$oread,true);
-            if($id >= 0){                                                       // id found in read streams
+            if($id === false){
+                throw new Stream_Master_Exception('Invalid stream to read from');
+            }
+            if(array_search($stream,$ports,true) === false){                    // stream is not a port
                 $client = $clients[$id];
                 if($this->streamClientReceive($client,$stream) === false){      // nothing read => disconnect
                     $this->streamClientDisconnect($client);
                 }
-            }else if($id < 0){                                                  // port socket => new connection
+            }else{
                 if($this->isPortDatagram($stream)){
                     $this->streamPortDatagram($stream);
                 }else{
@@ -94,8 +96,6 @@ abstract class Stream_Master{
                     }
                     $this->streamClientConnect($cstream,$stream);
                 }
-            }else{
-                throw new Stream_Master_Exception('Invalid stream to read from');
             }
         }
     }
