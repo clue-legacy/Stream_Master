@@ -15,29 +15,25 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * array of clients to read from / write to
      * 
-     * @var array
+     * @var array[Stream_Master_Client]
      */
-    protected $clients;
+    protected $clients = array();
     
     /**
      * ports waiting for new connections
      * 
      * @var array[resource]
      */
-    protected $ports;
+    protected $ports = array();
     
     /**
-     * array of active tasks
+     * event emitter instance
      * 
-     * @var array[Worker_Task]
+     * @var EventEmitter
      */
-    protected $tasks;
+    protected $events = array();
     
     public function __construct(){
-        $this->clients = array();
-        $this->ports   = array();
-        $this->tasks   = array();
-        
         $this->events = new EventEmitter();
     }
     
