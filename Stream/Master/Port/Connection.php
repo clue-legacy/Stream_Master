@@ -16,4 +16,8 @@ class Stream_Master_Port_Connection extends Stream_Master_Port{
         }
         return $cstream;
     }
+    
+    public function onCanRead($master){
+        $master->onPortConnection($this);
+    }
 }

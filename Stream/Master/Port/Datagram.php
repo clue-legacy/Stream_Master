@@ -26,4 +26,14 @@ class Stream_Master_Port_Datagram extends Stream_Master_Port{
     public function write($data,$address,$flags=0){
         return stream_socket_sendto($this->stream,$data,$flags,$address);
     }
+    
+    public function onCanRead($master){
+        $master->onPortDatagram($this);
+        /*
+        // example code
+        $request = $port->read(1000,$address);
+        $response = $address.': '.$request;
+        $port->write($response,$address);
+        */
+    }
 }

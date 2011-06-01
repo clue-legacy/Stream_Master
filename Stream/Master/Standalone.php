@@ -82,6 +82,14 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this->clients;
     }
     
+    public function removeClient($client){
+        $key = array_search($client,$this->clients,true);
+        if($key === false){
+            throw new Exception('Invalid client handle');
+        }
+        unset($this->clients[$key]);
+    }
+    
     /**
      * add new listening port
      * 
@@ -105,7 +113,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @uses Worker_Master::streamSelect()
      */
     public function startOnce($timeout=NULL){
-        $this->streamSelect($timeout);
+        $this->streamSelect($this->clients,$timeout);
     }
     
     /**
@@ -115,31 +123,47 @@ class Stream_Master_Standalone extends Stream_Master{
      */
     public function start(){
         while(true){
-            $this->streamSelect();
+            $this->streamSelect($this->clients);
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * called when a new slave has connected
+     * 
+     * @param Stream_Master_Port_Connection $port
+     * @uses Stream_Master_Port_Connection::accept() to accept new client connection
+     * @uses Worker_Standalone::addClient()
+     */
+    public function onPortConnection(Stream_Master_Port_Connection $port){
+        $client = $this->addClient($port->accept());
+        try{
+            $this->events->fireEvent('clientConnect',$client);
+        }
+        catch(Stream_Master_Exception $e){ // exception caught, try to disconnect client
+            //Debug::dump('Connection rejected, remove client');
+            
+            $this->removeClient($client);
         }
     }
     
     /**
      * called when a new slave has connected
      * 
-     * @param resource $stream
-     * @param resource $port
+     * @param Stream_Master_Port_Connection $port
      */
-    protected function streamClientConnect($stream,$port){
-        $this->events->fireEvent('clientConnect',$stream,$port);
+    public function onPortDatagram(Stream_Master_Port_Connection $port){
+        throw new Worker_Master_Exception('No datagram handler');
     }
     
     /**
      * called when a slave has been disconnected
      * 
-     * @param mixed $client
+     * @param Stream_Master_Client $client
      */
-    protected function streamClientDisconnect($client){
-        $key = array_search($client,$this->clients,true);
-        if($key === false){
-            throw new Exception('Invalid client handle');
-        }
-        unset($this->clients[$key]);
+    public function onClientClose(Stream_Master_Client $client){
+        $this->removeClient($client);
         
         $this->events->fireEvent('clientDisconnect',$client);
     }
@@ -147,36 +171,18 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * called when a client can send data
      * 
-     * @param mixed    $client
-     * @param resource $stream
-     * @return mixed false=disconnect
+     * @param Stream_Master_Client $client
      */
-    protected function streamClientSend($client,$stream){
-        try{
-            $this->events->fireEvent('clientWrite',$client,$stream);
-        }
-        catch(Stream_Master_Exception $e){
-            return false;
-        }
+    public function onClientWrite(Stream_Master_Client $client){
+        $this->events->fireEvent('clientWrite',$client);
     }
     
     /**
      * calls when a client can receive data
      * 
-     * @param mixed    $client
-     * @param resource $stream
-     * @return mixed false=disconnect
+     * @param Stream_Master_Client $client
      */
-    protected function streamClientReceive($client,$stream){
-        try{
-            $this->events->fireEvent('clientRead',$client,$stream);
-        }
-        catch(Stream_Master_Exception $e){
-            return false;
-        }
-    }
-    
-    protected function getStreamClients(){
-        return $this->clients;
+    public function onClientRead(Stream_Master_Client $client){
+        $this->events->fireEvent('clientRead',$client);
     }
 }

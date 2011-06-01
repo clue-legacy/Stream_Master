@@ -32,4 +32,27 @@ abstract class Stream_Master_Client{
      * @return resource|NULL
      */
     abstract public function getStreamWrite();
+    
+    public function onCanRead($master){
+        //$native = $this->getNative();
+        try{
+            $master->onClientRead($this);
+        }
+        catch(Stream_Master_Exception $e){
+            $this->onClose($master);
+        }
+    }
+    
+    public function onCanWrite($master){
+        try{
+            $master->onClientWrite($this);
+        }
+        catch(Stream_Master_Exception $e){
+            $this->onClose($master);
+        }
+    }
+    
+    public function onClose($master){
+        $master->onClientClose($this);
+    }
 }
