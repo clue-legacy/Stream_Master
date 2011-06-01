@@ -12,7 +12,7 @@ class Stream_Master_Client_Old extends Stream_Master_Client{
         return $this->client;
     }
     
-    protected function getStreamRead(){
+    public function getStreamRead(){
         if(is_resource($this->client)){
             return $this->client;
         }else if(is_callable(array($this->client,'getStreamReceive'))){
@@ -26,7 +26,7 @@ class Stream_Master_Client_Old extends Stream_Master_Client{
         }
     }
     
-    protected function getStreamWrite(){
+    public function getStreamWrite(){
         if(is_resource($this->client)){
             return $this->client;
         }else if(is_callable(array($this->client,'getStreamSend'))){
