@@ -54,5 +54,27 @@ abstract class Stream_Master_Client{
     
     public function onClose($master){
         $master->onClientClose($this);
+        $this->close();
+    }
+    
+    /**
+     * close streams
+     * 
+     * @return Worker_Master_Client $this (chainable)
+     * @uses Worker_Master_Client::getStreamRead()
+     * @uses Worker_Master_Client::getStreamWrite()
+     * @uses fclose()
+     */
+    public function close(){
+        $r = $this->getStreamRead();
+        $w = $this->getStreamWrite();
+
+        if($r !== NULL){
+            fclose($r);
+        }
+        if($w !== NULL && $w !== $r){
+            fclose($w);
+        }
+        return $this;
     }
 }

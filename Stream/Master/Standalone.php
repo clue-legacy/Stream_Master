@@ -127,6 +127,20 @@ class Stream_Master_Standalone extends Stream_Master{
         }
     }
     
+    /**
+     * close all clients
+     * 
+     * @return Worker_Master_Standalone $this (chainable)
+     * @uses Worker_Master_Client::close()
+     */
+    public function close(){
+        foreach($this->clients as $client){
+            $client->close();
+        }
+        $this->clients = array();
+        return $this;
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     
     /**
@@ -134,7 +148,10 @@ class Stream_Master_Standalone extends Stream_Master{
      * 
      * @param Stream_Master_Port_Connection $port
      * @uses Stream_Master_Port_Connection::accept() to accept new client connection
-     * @uses Worker_Standalone::addClient()
+     * @uses Worker_Master_Standalone::addClient()
+     * @uses EventEmitter::fireEvent()
+     * @uses Worker_Master_Standalone::removeClient()
+     * @uses Worker_Master_Client::close()
      */
     public function onPortConnection(Stream_Master_Port_Connection $port){
         $client = $this->addClient($port->accept());
@@ -145,6 +162,7 @@ class Stream_Master_Standalone extends Stream_Master{
             //Debug::dump('Connection rejected, remove client');
             
             $this->removeClient($client);
+            $client->close();
         }
     }
     
