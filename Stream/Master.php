@@ -78,16 +78,10 @@ abstract class Stream_Master{
             }
             
             $client = $clients[$id];
-            if($client instanceof Stream_Master_Port){
-                if($client->isDatagram()){
-                    $this->streamPortDatagram($client);
-                }else{
-                    $cstream = stream_socket_accept($stream,1.0);
-                    if($cstream === false){
-                        throw new Stream_Master_Exception('Unable to accept new connection');
-                    }
-                    $this->streamClientConnect($cstream,$client);
-                }
+            if($client instanceof Stream_Master_Port_Connection){
+                $this->streamClientConnect($client->accept(),$client);
+            }else if($client instanceof Stream_Master_Port_Datagram){
+                $this->streamPortDatagram($client);
             }else{
                 if($this->streamClientReceive($client,$stream) === false){      // nothing read => disconnect
                     $this->streamClientDisconnect($client);
@@ -155,16 +149,15 @@ abstract class Stream_Master{
     /**
      * called when a datagram (UDP/UDG) is available on the given port
      * 
-     * @param Stream_Master_Port $port
+     * @param Stream_Master_Port_Datagram $port
      */
     protected function streamPortDatagram($port){
         throw new Stream_Master_Exception('No datagram handler');
         /*
         // example code
-        $stream = $port->getStreamRead();
-        $request = stream_socket_recvfrom($stream,1000,0,$address);
+        $request = $port->read(1000,$address);
         $response = $address.': '.$request;
-        stream_socket_sendto($stream,$response,0,$address);
+        $port->write($response,$address);
         */
     }
 }
