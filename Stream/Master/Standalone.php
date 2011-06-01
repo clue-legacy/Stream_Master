@@ -61,11 +61,13 @@ class Stream_Master_Standalone extends Stream_Master{
      * add new client
      * 
      * @param mixed $client resource or instance providing getStream()/getStreamReceive()/getStreamSend()
-     * @return mixed
-     * @throws Stream_Master_Exception when given client is invalid
+     * @return Stream_Master_Client
+     * @uses Stream_Master_Client::factory()
      */
     public function addClient($client){
-        $client = Stream_Master_Client::factory($client);
+        if(!($client instanceof Stream_Master_Client)){
+            $client = Stream_Master_Client::factory($client); 
+        }
         
         $this->clients[] = $client;
         return $client;
@@ -178,4 +180,3 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this->clients;
     }
 }
-

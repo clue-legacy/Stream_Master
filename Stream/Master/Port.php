@@ -7,7 +7,7 @@ abstract class Stream_Master_Port extends Stream_Master_Client{
      * @param int|string    $address port to listen to
      * @param NULL|resource $context stream context to use
      * @param NULL|int      $backlog maximum size of incoming connection queue
-     * @return resource listing stream port
+     * @return Stream_Master_Port_Connection|Stream_Master_Port_Datagram listing stream port
      * @throws Stream_Master_Exception on error
      * @uses stream_context_create() for optional backlog parameter
      * @uses stream_socket_server() to create new server port
@@ -40,12 +40,30 @@ abstract class Stream_Master_Port extends Stream_Master_Client{
         return $datagram ? new Stream_Master_Port_Datagram($stream) : new Stream_Master_Port_Connection($stream);
     }
     
+    ////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * stream resource to operate on
+     * 
+     * @var resource
+     */
     protected $stream;
     
+    /**
+     * instanciate new port with given stream resource
+     * 
+     * @param resource $stream
+     */
     public function __construct($stream){
         $this->stream = $stream;
     }
     
+    /**
+     * get local address of port
+     * 
+     * @return string
+     * @uses stream_socket_get_name()
+     */
     public function getAddress(){
         return stream_socket_get_name($this->stream,false);
     }
@@ -62,4 +80,3 @@ abstract class Stream_Master_Port extends Stream_Master_Client{
         return NULL;
     }
 }
-

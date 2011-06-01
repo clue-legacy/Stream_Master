@@ -20,15 +20,15 @@ abstract class Stream_Master{
      * @param float|NULL $timeout maximum(!) timeout in seconds to wait, NULL = wait forever
      * @throws Stream_Master_Exception on error
      * @uses Stream_Master::getStreamClients() to get all client streams (incoming and outgoing)
-     * @uses Stream_Master::getClientStreamRead() to get incoming client stream
-     * @uses Stream_Master::getClientStreamWrite() to get outgoing client stream
-     * @uses Stream_Master::getStreamPorts() to get additional ports for check for new incoming client connections
+     * @uses Stream_Master_Client::getStreamRead() to get incoming client stream
+     * @uses Stream_Master_Client::getStreamWrite() to get outgoing client stream
      * @uses Stream_Master::streamClientSend() when data is ready to be sent
      * @uses Stream_Master::streamClientReceive() when data is ready to be received
      * @uses Stream_Master::streamClientDisconnect() to disconnect client when sending/receiving failed
      * @uses Stream_Master::streamClientConnect() when a new connection is established to either of the ports
+     * @uses Stream_Master::streamPortDatagram() when a new packet is available for reading
      * @uses stream_select() internally to check streams for changes
-     * @uses stream_socket_accept() internally to accept new client connections
+     * @uses Stream_Master_Port_Connection::accept() internally to accept new client connections
      */
     protected function streamSelect($timeout=NULL){
         $clients = (array)$this->getStreamClients();
@@ -161,4 +161,3 @@ abstract class Stream_Master{
         */
     }
 }
-
