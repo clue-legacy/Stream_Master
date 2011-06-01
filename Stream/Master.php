@@ -35,10 +35,10 @@ abstract class Stream_Master{
         $oread   = array();
         $owrite  = array();
         foreach($clients as $id=>$client){                                      // cycle through clients to initialize streams
-            if(($r = $this->getClientStreamRead($client)) !== NULL){
+            if(($r = $client->getStreamRead()) !== NULL){
                 $oread[$id] = $r;
             }
-            if(($w = $this->getClientStreamWrite($client)) !== NULL){
+            if(($w = $client->getStreamWrite()) !== NULL){
                 $owrite[$id] = $w;
             }
         }
@@ -103,7 +103,7 @@ abstract class Stream_Master{
     /**
      * get stream clients to read from / to write to
      * 
-     * @return array[Interface_Stream_Duplex]|Interface_Stream_Duplex multiple or single Stream_Client used to send data to and receive data from
+     * @return array[Stream_Master_Client] multiple or single Stream_Master_Client used to send data to and receive data from
      */
     abstract protected function getStreamClients();
     
@@ -189,48 +189,5 @@ abstract class Stream_Master{
     protected function isPortDatagram($port){
         $meta = stream_get_meta_data($port);
         return ($meta['stream_type'] === 'udp_socket' || $meta['stream_type'] === 'udg_socket');
-    }
-    
-    /**
-     * get readable stream resource for given client
-     * 
-     * @param mixed $client
-     * @return resource|NULL
-     */
-    protected function getClientStreamRead($client){
-        if(is_resource($client)){
-            return $client;
-        }else if(is_callable(array($client,'getStreamReceive'))){
-            return $client->getStreamReceive();
-        }else if(is_callable(array($client,'getStreamRead'))){
-            return $client->getStreamRead();
-        }else if(is_callable(array($client,'getStream'))){
-            return $client->getStream();
-        }else{
-            throw new Stream_Master_Exception('Unable to determine read stream for given client'); 
-        }
-    }
-    
-    /**
-     * get writeable stream resource for given client
-     * 
-     * @param mixed $client
-     * @return resource|NULL
-     */
-    protected function getClientStreamWrite($client){
-        if(is_resource($client)){
-            return $client;
-        }else if(is_callable(array($client,'getStreamSend'))){
-            if(is_callable(array($client,'hasStreamOutgoing')) && !$client->hasStreamOutgoing()){
-                return NULL;
-            }
-            return $client->getStreamSend();
-        }else if(is_callable(array($client,'getStreamWrite'))){
-            return $client->getStreamWrite();
-        }else if(is_callable(array($client,'getStream'))){
-            return $client->getStream();
-        }else{
-            throw new Stream_Master_Exception('Unable to determine write stream for given client'); 
-        }
     }
 }

@@ -76,8 +76,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @throws Stream_Master_Exception when given client is invalid
      */
     public function addClient($client){
-        $this->getClientStreamRead($client); // just call to make sure client has read/write streams available 
-        $this->getClientStreamWrite($client);
+        $client = Stream_Master_Client::factory($client);
         
         $this->clients[] = $client;
         return $client;
