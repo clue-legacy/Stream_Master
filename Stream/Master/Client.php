@@ -33,8 +33,14 @@ abstract class Stream_Master_Client{
      */
     abstract public function getStreamWrite();
     
+    /**
+     * called when it's save to read from this client
+     * 
+     * @param Worker_Master $master
+     * @uses Worker_Master_Standalone::onClientRead()
+     * @uses Worker_Master_Client::onClose() when reading fails
+     */
     public function onCanRead($master){
-        //$native = $this->getNative();
         try{
             $master->onClientRead($this);
         }
@@ -43,6 +49,13 @@ abstract class Stream_Master_Client{
         }
     }
     
+    /**
+     * called when it's save to write to this client
+     * 
+     * @param Worker_Master $master
+     * @uses Worker_Master_Standalone::onClientWrite()
+     * @uses Worker_Master_Client::onClose() when writing fails
+     */
     public function onCanWrite($master){
         try{
             $master->onClientWrite($this);
@@ -52,6 +65,13 @@ abstract class Stream_Master_Client{
         }
     }
     
+    /**
+     * called when reading/writing to client failed
+     * 
+     * @param Worker_Master $master
+     * @uses Worker_Master_Standalone::onClientClose() to remove from list of known clients
+     * @uses Worker_Master_Client::close() to close open streams
+     */
     public function onClose($master){
         $master->onClientClose($this);
         $this->close();

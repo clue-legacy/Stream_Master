@@ -179,6 +179,8 @@ class Stream_Master_Standalone extends Stream_Master{
      * called when a slave has been disconnected
      * 
      * @param Stream_Master_Client $client
+     * @uses Worker_Master_Standalone::removeClient()
+     * @uses EventEmitter::fireEvent()
      */
     public function onClientClose(Stream_Master_Client $client){
         $this->removeClient($client);
@@ -190,6 +192,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * called when a client can send data
      * 
      * @param Stream_Master_Client $client
+     * @uses EventEmitter::fireEvent()
      */
     public function onClientWrite(Stream_Master_Client $client){
         $this->events->fireEvent('clientWrite',$client);
@@ -199,6 +202,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * calls when a client can receive data
      * 
      * @param Stream_Master_Client $client
+     * @uses EventEmitter::fireEvent()
      */
     public function onClientRead(Stream_Master_Client $client){
         $this->events->fireEvent('clientRead',$client);

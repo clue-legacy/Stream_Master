@@ -17,6 +17,12 @@ class Stream_Master_Port_Connection extends Stream_Master_Port{
         return $cstream;
     }
     
+    /**
+     * called when it's save to read from this port (i.e. new incomming connection)
+     * 
+     * @param Worker_Master $master
+     * @uses Worker_Master_Standalone::onPortConnection()
+     */
     public function onCanRead($master){
         $master->onPortConnection($this);
     }

@@ -12,7 +12,7 @@
  */
 abstract class Stream_Master{
     /**
-     * wait on all streams for incoming/outgoing changes once
+     * wait on given streams for incoming/outgoing changes once
      * 
      * this will issue stream_select() once only and return immediately when
      * something interesting happens.
@@ -22,12 +22,15 @@ abstract class Stream_Master{
      * @throws Stream_Master_Exception on error
      * @uses Stream_Master_Client::getStreamRead() to get incoming client stream
      * @uses Stream_Master_Client::getStreamWrite() to get outgoing client stream
-     * @uses Stream_Master::streamClientSend() when data is ready to be sent
-     * @uses Stream_Master::streamClientReceive() when data is ready to be received
+     * @uses stream_select() internally to check streams for changes
+     * @uses Stream_Master_Client::onCanWrite() when data is ready to be sent
+     * @uses Stream_Master_Client::onCanRead() when data is ready to be received
+     * 
+     * 
+     * 
      * @uses Stream_Master::streamClientDisconnect() to disconnect client when sending/receiving failed
      * @uses Stream_Master::streamClientConnect() when a new connection is established to either of the ports
      * @uses Stream_Master::streamPortDatagram() when a new packet is available for reading
-     * @uses stream_select() internally to check streams for changes
      * @uses Stream_Master_Port_Connection::accept() internally to accept new client connections
      */
     protected function streamSelect($clients,$timeout=NULL){

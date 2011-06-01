@@ -27,6 +27,12 @@ class Stream_Master_Port_Datagram extends Stream_Master_Port{
         return stream_socket_sendto($this->stream,$data,$flags,$address);
     }
     
+    /**
+     * called when it's save to read from this port (i.e. new datagram available)
+     * 
+     * @param Worker_Master $master
+     * @uses Worker_Master_Standalone::onPortDatagram()
+     */
     public function onCanRead($master){
         $master->onPortDatagram($this);
         /*
