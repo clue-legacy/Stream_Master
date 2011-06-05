@@ -26,6 +26,10 @@ class Stream_Master_Standalone extends Stream_Master{
      */
     protected $events;
     
+    protected $running = false;
+    
+    protected $return = NULL;
+    
     public function __construct(){
         $this->events = new EventEmitter();
     }
@@ -107,6 +111,97 @@ class Stream_Master_Standalone extends Stream_Master{
     }
     
     /**
+     * set target time when to time out (absolute target time)
+     * 
+     * @param float|NULL $timeout
+     * @return Stream_Master_Simple $this (cainable)
+     */
+    public function setTimeout($timeout){
+        $this->timeout = $timeout;
+        return $this;
+    }
+    
+    /**
+     * set target time when to time out (relative time offset)
+     * 
+     * @param float $seconds
+     * @return Stream_Master_Simple $this (cainable)
+     * @uses microtime()
+     * @uses Stream_Master_Standalone::setTimeout()
+     */
+    public function setTimeoutIn($seconds){
+        return $this->setTimeout($seconds + microtime(true));
+    }
+    
+    /**
+     * get timeout
+     * 
+     * @return float|NULL
+     */
+    public function getTimeout(){
+        return $this->timeout;
+    }
+    
+    /**
+     * check whether a timeout is actually set
+     * 
+     * @return boolean
+     */
+    public function hasTimeout(){
+        return ($this->timeout !== NULL);
+    }
+    
+    /**
+     * check whether timeout is expired
+     * 
+     * timeout is considered expired when actually set and current time > time limit
+     * 
+     * @return boolean
+     */
+    public function isTimeoutExpired(){
+        return ($this->timeout !== NULL && microtime(true) > $this->timeout);
+    }
+    
+    /**
+     * get seconds remaining until timeout occurs
+     * 
+     * @return float|NULL
+     */
+    public function getTimeoutRemaining(){
+        if($this->timeout === NULL){
+            return NULL;
+        }
+        $timeout = $this->timeout - microtime();
+        return $timeout < 0 ? 0 : $timeout;
+    }
+    
+    /**
+     * check whether the event loop is still running
+     * 
+     * @return boolean
+     * @see Worker_Master_Standalone::start()
+     */
+    public function isRunning(){
+        return $this->running;
+    }
+    
+    /**
+     * stop the event loop
+     * 
+     * @param mixed $return return value to be passed to start()
+     * @return Worker_Master_Standalone $this (chainable)
+     * @throws Stream_Master_Exception if event loop is not running
+     */
+    public function stop($return=NULL){
+        if(!$this->running){
+            throw new Stream_Master_Exception('Event loop not running');
+        }
+        $this->running = false;
+        $this->return = $return;
+        return $this;
+    }
+    
+    /**
      * wait for new events on all clients+ports
      * 
      * @param float|NULL $timeout maximum timeout in seconds (NULL=wait forever)
@@ -119,12 +214,39 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * start event loop and wait for events
      * 
+     * @return mixed
+     * @throws Stream_Master_Exception
+     * @see Worker_Master_Standalone::stop()
+     * @uses Worker_Master_Standalone::getTimeoutRemaining()
      * @uses Worker_Master::streamSelect()
+     * @uses Worker_master_Standalone::isTimeoutExpired()
+     * @uses EventEmitter::fireEvent()
      */
     public function start(){
-        while(true){
-            $this->streamSelect($this->clients);
+        if($this->running){
+            throw new Stream_Master_Exception('Already running');
         }
+        $this->running = true;
+        $this->return  = NULL;
+        do{
+            try{
+                if(!$this->clients){
+                    throw new Stream_Master_Exception('No clients to operate on');
+                }
+                $this->streamSelect($this->clients,$this->getTimeoutRemaining());
+                
+                if($this->running && $this->isTimeoutExpired()){
+                    $this->running = false;
+                    $this->events->fireEvent('timeout');
+                }
+            }
+            catch(Exception $e){                                                // an error occured
+                $this->running = false;                                         // make sure to remove 'running' state
+                throw $e;
+            }
+        }while($this->running);
+        
+        return $this->return;
     }
     
     /**
