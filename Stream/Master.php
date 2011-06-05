@@ -25,13 +25,6 @@ abstract class Stream_Master{
      * @uses stream_select() internally to check streams for changes
      * @uses Stream_Master_Client::onCanWrite() when data is ready to be sent
      * @uses Stream_Master_Client::onCanRead() when data is ready to be received
-     * 
-     * 
-     * 
-     * @uses Stream_Master::streamClientDisconnect() to disconnect client when sending/receiving failed
-     * @uses Stream_Master::streamClientConnect() when a new connection is established to either of the ports
-     * @uses Stream_Master::streamPortDatagram() when a new packet is available for reading
-     * @uses Stream_Master_Port_Connection::accept() internally to accept new client connections
      */
     protected function streamSelect($clients,$timeout=NULL){
         if(!is_array($clients)){
@@ -48,11 +41,15 @@ abstract class Stream_Master{
             }
         }
         
+        if(!$oread && !$owrite){                                                // nothing to be done
+            return;
+        }
+        
         $ssleep  = NULL;
         $usleep  = NULL;
         if($timeout !== NULL){                                                  // calculate timeout into ssleep/usleep
-            $usleep = (int)(($timeout - (int)$timeout)*1000000);
             $ssleep = (int)$timeout;
+            $usleep = (int)(($timeout - $ssleep)*1000000);
         }
         
         $read   = $oread;
