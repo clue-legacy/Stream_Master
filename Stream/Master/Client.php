@@ -36,9 +36,9 @@ abstract class Stream_Master_Client{
     /**
      * called when it's save to read from this client
      * 
-     * @param Worker_Master $master
-     * @uses Worker_Master_Standalone::onClientRead()
-     * @uses Worker_Master_Client::onClose() when reading fails
+     * @param Stream_Master $master
+     * @uses Stream_Master_Standalone::onClientRead()
+     * @uses Stream_Master_Client::onClose() when reading fails
      */
     public function onCanRead($master){
         try{
@@ -52,9 +52,9 @@ abstract class Stream_Master_Client{
     /**
      * called when it's save to write to this client
      * 
-     * @param Worker_Master $master
-     * @uses Worker_Master_Standalone::onClientWrite()
-     * @uses Worker_Master_Client::onClose() when writing fails
+     * @param Stream_Master $master
+     * @uses Stream_Master_Standalone::onClientWrite()
+     * @uses Stream_Master_Client::onClose() when writing fails
      */
     public function onCanWrite($master){
         try{
@@ -68,9 +68,9 @@ abstract class Stream_Master_Client{
     /**
      * called when reading/writing to client failed
      * 
-     * @param Worker_Master $master
-     * @uses Worker_Master_Standalone::onClientClose() to remove from list of known clients
-     * @uses Worker_Master_Client::close() to close open streams
+     * @param Stream_Master $master
+     * @uses Stream_Master_Standalone::onClientClose() to remove from list of known clients
+     * @uses Stream_Master_Client::close() to close open streams
      */
     public function onClose($master){
         $master->onClientClose($this);
@@ -80,9 +80,9 @@ abstract class Stream_Master_Client{
     /**
      * close streams
      * 
-     * @return Worker_Master_Client $this (chainable)
-     * @uses Worker_Master_Client::getStreamRead()
-     * @uses Worker_Master_Client::getStreamWrite()
+     * @return Stream_Master_Client $this (chainable)
+     * @uses Stream_Master_Client::getStreamRead()
+     * @uses Stream_Master_Client::getStreamWrite()
      * @uses fclose()
      */
     public function close(){

@@ -30,8 +30,8 @@ class Stream_Master_Port_Datagram extends Stream_Master_Port{
     /**
      * called when it's save to read from this port (i.e. new datagram available)
      * 
-     * @param Worker_Master $master
-     * @uses Worker_Master_Standalone::onPortDatagram()
+     * @param Stream_Master $master
+     * @uses Stream_Master_Standalone::onPortDatagram()
      */
     public function onCanRead($master){
         $master->onPortDatagram($this);

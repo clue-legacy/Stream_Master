@@ -39,7 +39,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * 
      * @param string   $name
      * @param callback $function
-     * @return Worker_Master_Standalone $this (chainable)
+     * @return Stream_Master_Standalone $this (chainable)
      */
     public function addEvent($name,$function){
         $this->events->addEvent($name,$function);
@@ -179,7 +179,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * check whether the event loop is still running
      * 
      * @return boolean
-     * @see Worker_Master_Standalone::start()
+     * @see Stream_Master_Standalone::start()
      */
     public function isRunning(){
         return $this->running;
@@ -189,7 +189,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * stop the event loop
      * 
      * @param mixed $return return value to be passed to start()
-     * @return Worker_Master_Standalone $this (chainable)
+     * @return Stream_Master_Standalone $this (chainable)
      * @throws Stream_Master_Exception if event loop is not running
      */
     public function stop($return=NULL){
@@ -205,7 +205,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * wait for new events on all clients+ports
      * 
      * @param float|NULL $timeout maximum timeout in seconds (NULL=wait forever)
-     * @uses Worker_Master::streamSelect()
+     * @uses Stream_Master::streamSelect()
      */
     public function startOnce($timeout=NULL){
         $this->streamSelect($this->clients,$timeout);
@@ -216,10 +216,10 @@ class Stream_Master_Standalone extends Stream_Master{
      * 
      * @return mixed
      * @throws Stream_Master_Exception
-     * @see Worker_Master_Standalone::stop()
-     * @uses Worker_Master_Standalone::getTimeoutRemaining()
-     * @uses Worker_Master::streamSelect()
-     * @uses Worker_master_Standalone::isTimeoutExpired()
+     * @see Stream_Master_Standalone::stop()
+     * @uses Stream_Master_Standalone::getTimeoutRemaining()
+     * @uses Stream_Master::streamSelect()
+     * @uses Stream_Master_Standalone::isTimeoutExpired()
      * @uses EventEmitter::fireEvent()
      */
     public function start(){
@@ -236,8 +236,8 @@ class Stream_Master_Standalone extends Stream_Master{
                 $this->streamSelect($this->clients,$this->getTimeoutRemaining());
                 
                 if($this->running && $this->isTimeoutExpired()){
-                    $this->running = false;
                     $this->events->fireEvent('timeout');
+                    $this->running = false;
                 }
             }
             catch(Exception $e){                                                // an error occured
@@ -252,8 +252,8 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * close all clients
      * 
-     * @return Worker_Master_Standalone $this (chainable)
-     * @uses Worker_Master_Client::close()
+     * @return Stream_Master_Standalone $this (chainable)
+     * @uses Stream_Master_Client::close()
      */
     public function close(){
         foreach($this->clients as $client){
@@ -270,10 +270,10 @@ class Stream_Master_Standalone extends Stream_Master{
      * 
      * @param Stream_Master_Port_Connection $port
      * @uses Stream_Master_Port_Connection::accept() to accept new client connection
-     * @uses Worker_Master_Standalone::addClient()
+     * @uses Stream_Master_Standalone::addClient()
      * @uses EventEmitter::fireEvent()
-     * @uses Worker_Master_Standalone::removeClient()
-     * @uses Worker_Master_Client::close()
+     * @uses Stream_Master_Standalone::removeClient()
+     * @uses Stream_Master_Client::close()
      */
     public function onPortConnection(Stream_Master_Port_Connection $port){
         $client = $this->addClient($port->accept());
@@ -293,15 +293,15 @@ class Stream_Master_Standalone extends Stream_Master{
      * 
      * @param Stream_Master_Port_Connection $port
      */
-    public function onPortDatagram(Stream_Master_Port_Connection $port){
-        throw new Worker_Master_Exception('No datagram handler');
+    public function onPortDatagram(Stream_Master_Port_Datagram $port){
+        throw new Stream_Master_Exception('No datagram handler');
     }
     
     /**
      * called when a slave has been disconnected
      * 
      * @param Stream_Master_Client $client
-     * @uses Worker_Master_Standalone::removeClient()
+     * @uses Stream_Master_Standalone::removeClient()
      * @uses EventEmitter::fireEvent()
      */
     public function onClientClose(Stream_Master_Client $client){
