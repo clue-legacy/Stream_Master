@@ -30,6 +30,14 @@ class Stream_Master_Standalone extends Stream_Master{
     
     protected $return = NULL;
     
+    /**
+     * when to time out (timestamp)
+     * 
+     * @var float|NULL
+     * @see Stream_Master_Standalone::setTimeout()
+     */
+    protected $timeout = NULL;
+    
     public function __construct(){
         $this->events = new EventEmitter();
     }
