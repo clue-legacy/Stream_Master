@@ -95,6 +95,22 @@ class Stream_Master_Standalone extends Stream_Master{
     }
     
     /**
+     * get array of clients that are an instance of the given class
+     * 
+     * @param string $instance
+     * @return array
+     */
+    public function getClientsInstance($instance){
+        $ret = array();
+        foreach($this->clients as $id=>$client){
+            if($client instanceof $instance){
+                $ret[$id] = $client;
+            }
+        }
+        return $ret;
+    }
+    
+    /**
      * remove client
      * 
      * @param Stream_Master_Client $client
