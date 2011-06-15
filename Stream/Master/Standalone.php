@@ -94,12 +94,17 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this->clients;
     }
     
+    /**
+     * remove client
+     * 
+     * @param Stream_Master_Client $client
+     * @return Stream_Master_Standalone $this (chainable)
+     * @uses Stream_Master_Standalone::getClientId()
+     */
     public function removeClient($client){
-        $key = array_search($client,$this->clients,true);
-        if($key === false){
-            throw new Exception('Invalid client handle');
-        }
-        unset($this->clients[$key]);
+        $id = $this->getClientId();
+        unset($this->clients[$id]);
+        return $this;
     }
     
     /**
