@@ -118,7 +118,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @uses Stream_Master_Standalone::getClientId()
      */
     public function removeClient($client){
-        $id = $this->getClientId();
+        $id = $this->getClientId($client);
         unset($this->clients[$id]);
         return $this;
     }
