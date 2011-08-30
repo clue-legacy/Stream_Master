@@ -33,9 +33,10 @@ abstract class Stream_Master_Port extends Stream_Master_Client{
             $flags |= STREAM_SERVER_LISTEN;
             $datagram = false;
         }
-        $stream = stream_socket_server($address,$errno,$errstr,$flags,$context);
+        $errstr = $errno = NULL;
+        $stream = @stream_socket_server($address,$errno,$errstr,$flags,$context);
         if($stream === false){
-            throw new Stream_Master_Exception('Unable to start server on '.Debug::param($address));
+            throw new Stream_Master_Exception('Unable to start server on '.Debug::param($address).' : '.Debug::param($errstr).' (code '.Debug::param($errno).')');
         }
         return $datagram ? new Stream_Master_Port_Datagram($stream) : new Stream_Master_Port_Connection($stream);
     }
