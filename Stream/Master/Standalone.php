@@ -70,6 +70,20 @@ class Stream_Master_Standalone extends Stream_Master{
     }
     
     /**
+     * get client instance for given client ID
+     * 
+     * @param int $id
+     * @return Stream_Master_Client
+     * @throws Stream_Master_Exception if there's no client with the given ID
+     */
+    public function getClient($id){
+        if(!isset($this->clients[$id])){
+            throw new Stream_Master_Exception('Unknown client ID given');
+        }
+        return $this->clients[$id];
+    }
+    
+    /**
      * add new client
      * 
      * @param mixed $client resource or instance providing getStream()/getStreamReceive()/getStreamSend()
