@@ -26,7 +26,7 @@ abstract class Stream_Master{
      * @uses Stream_Master_Client::onCanWrite() when data is ready to be sent
      * @uses Stream_Master_Client::onCanRead() when data is ready to be received
      */
-    protected function streamSelect($clients,$timeout=NULL){
+    protected function streamSelect($clients,$timeoutIn=NULL){
         if(!is_array($clients)){
             $clients = array($clients);
         }
@@ -47,9 +47,9 @@ abstract class Stream_Master{
         
         $ssleep  = NULL;
         $usleep  = NULL;
-        if($timeout !== NULL){                                                  // calculate timeout into ssleep/usleep
-            $ssleep = (int)$timeout;
-            $usleep = (int)(($timeout - $ssleep)*1000000);
+        if($timeoutIn !== NULL){                                                // calculate timeout into ssleep/usleep
+            $ssleep = (int)$timeoutIn;
+            $usleep = (int)(($timeoutIn - $ssleep)*1000000);
         }
         
         $read   = $oread;

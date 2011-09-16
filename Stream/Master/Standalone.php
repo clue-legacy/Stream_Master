@@ -154,10 +154,10 @@ class Stream_Master_Standalone extends Stream_Master{
     }
     
     /**
-     * set target time when to time out (absolute target time)
+     * set target time when to time out (absolute target timestamp)
      * 
      * @param float|NULL $timeout
-     * @return Stream_Master_Simple $this (cainable)
+     * @return Stream_Master_Standalone $this (cainable)
      */
     public function setTimeout($timeout){
         $this->timeout = $timeout;
@@ -165,10 +165,10 @@ class Stream_Master_Standalone extends Stream_Master{
     }
     
     /**
-     * set target time when to time out (relative time offset)
+     * set time when to time out in seconds (relative time offset)
      * 
      * @param float $seconds
-     * @return Stream_Master_Simple $this (cainable)
+     * @return Stream_Master_Standalone $this (cainable)
      * @uses microtime()
      * @uses Stream_Master_Standalone::setTimeout()
      */
@@ -179,10 +179,23 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * get timeout
      * 
-     * @return float|NULL
+     * @return float|NULL absolute timestamp or NULL=no timeout set
      */
     public function getTimeout(){
         return $this->timeout;
+    }
+
+    /**
+     * get seconds remaining until timeout occurs
+     * 
+     * @return float|NULL seconds remaining until timeout occurs (never < 0) or NULL=no timeout set
+     */
+    public function getTimeoutIn(){
+        if($this->timeout === NULL){
+            return NULL;
+        }
+        $timeout = $this->timeout - microtime();
+        return $timeout < 0 ? 0 : $timeout;
     }
     
     /**
@@ -203,19 +216,6 @@ class Stream_Master_Standalone extends Stream_Master{
      */
     public function isTimeoutExpired(){
         return ($this->timeout !== NULL && microtime(true) > $this->timeout);
-    }
-    
-    /**
-     * get seconds remaining until timeout occurs
-     * 
-     * @return float|NULL
-     */
-    public function getTimeoutRemaining(){
-        if($this->timeout === NULL){
-            return NULL;
-        }
-        $timeout = $this->timeout - microtime();
-        return $timeout < 0 ? 0 : $timeout;
     }
     
     /**
@@ -247,11 +247,11 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * wait for new events on all clients+ports
      * 
-     * @param float|NULL $timeout maximum timeout in seconds (NULL=wait forever)
+     * @param float|NULL $timeoutIn maximum timeout in seconds (NULL=wait forever)
      * @uses Stream_Master::streamSelect()
      */
-    public function startOnce($timeout=NULL){
-        $this->streamSelect($this->clients,$timeout);
+    public function startOnce($timeoutIn=NULL){
+        $this->streamSelect($this->clients,$timeoutIn);
     }
     
     /**
@@ -260,7 +260,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @return mixed
      * @throws Stream_Master_Exception
      * @see Stream_Master_Standalone::stop()
-     * @uses Stream_Master_Standalone::getTimeoutRemaining()
+     * @uses Stream_Master_Standalone::getTimeoutIn()
      * @uses Stream_Master::streamSelect()
      * @uses Stream_Master_Standalone::isTimeoutExpired()
      * @uses EventEmitter::fireEvent()
@@ -276,7 +276,7 @@ class Stream_Master_Standalone extends Stream_Master{
                 if(!$this->clients){
                     throw new Stream_Master_Exception('No clients to operate on');
                 }
-                $this->streamSelect($this->clients,$this->getTimeoutRemaining());
+                $this->streamSelect($this->clients,$this->getTimeoutIn());
                 
                 if($this->running && $this->isTimeoutExpired()){
                     $this->events->fireEvent('timeout');
