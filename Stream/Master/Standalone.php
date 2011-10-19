@@ -344,13 +344,21 @@ class Stream_Master_Standalone extends Stream_Master{
      * called when a slave has been disconnected
      * 
      * @param Stream_Master_Client $client
-     * @uses Stream_Master_Standalone::removeClient()
      * @uses EventEmitter::fireEvent()
+     * @uses Stream_Master_Standalone::removeClient()
      */
     public function onClientClose(Stream_Master_Client $client){
+        $ex = NULL;
+        try{
+            $this->events->fireEvent('clientDisconnect',$client);               // fire event
+        }
+        catch(Exception $ex){ }                                                 // remember unexpected exception
+        
         $this->removeClient($client);
         
-        $this->events->fireEvent('clientDisconnect',$client);
+        if($ex !== NULL){                                                       // re-throw after client has been removed
+            throw $ex;
+        }
     }
     
     /**
