@@ -194,7 +194,7 @@ class Stream_Master_Standalone extends Stream_Master{
         if($this->timeout === NULL){
             return NULL;
         }
-        $timeout = $this->timeout - microtime();
+        $timeout = $this->timeout - microtime(true);
         return $timeout < 0 ? 0 : $timeout;
     }
     
