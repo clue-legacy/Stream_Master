@@ -1,4 +1,5 @@
 {
+    "name": "clue/Stream_Master",
     "require": {
         "evenement/evenement": "1.0.*"
     }
