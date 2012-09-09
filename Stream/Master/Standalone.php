@@ -1,5 +1,7 @@
 <?php
 
+use Evenement\EventEmitter;
+
 /**
  * simple standalone class implementing Stream_Master interface
  * 
@@ -50,12 +52,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @return Stream_Master_Standalone $this (chainable)
      */
     public function addEvent($name,$function){
-        $this->events->addEvent($name,$function);
-        return $this;
-    }
-    
-    public function removeEvent($function){
-        $this->events->removeEvent($function);
+        $this->events->on($name,$function);
         return $this;
     }
     
@@ -287,7 +284,7 @@ class Stream_Master_Standalone extends Stream_Master{
                 $this->streamSelect($this->clients,$this->getTimeoutIn());
                 
                 if($this->running && $this->isTimeoutExpired()){
-                    $this->events->fireEvent('timeout');
+                    $this->events->emit('timeout');
                     $this->running = false;
                 }
             }
@@ -329,7 +326,7 @@ class Stream_Master_Standalone extends Stream_Master{
     public function onPortConnection(Stream_Master_Port_Connection $port){
         $client = $this->addClient($port->accept());
         try{
-            $this->events->fireEvent('clientConnect',$client);
+            $this->events->emit('clientConnect',array($client));
         }
         catch(Stream_Master_Exception $e){ // exception caught, try to disconnect client
             //Debug::dump('Connection rejected, remove client');
@@ -358,7 +355,7 @@ class Stream_Master_Standalone extends Stream_Master{
     public function onClientClose(Stream_Master_Client $client){
         $ex = NULL;
         try{
-            $this->events->fireEvent('clientDisconnect',$client);               // fire event
+            $this->events->emit('clientDisconnect',array($client));            // fire event
         }
         catch(Exception $ex){ }                                                 // remember unexpected exception
         
@@ -376,7 +373,7 @@ class Stream_Master_Standalone extends Stream_Master{
      * @uses EventEmitter::fireEvent()
      */
     public function onClientWrite(Stream_Master_Client $client){
-        $this->events->fireEvent('clientWrite',$client);
+        $this->events->emit('clientWrite',array($client));
     }
     
     /**
@@ -386,6 +383,6 @@ class Stream_Master_Standalone extends Stream_Master{
      * @uses EventEmitter::fireEvent()
      */
     public function onClientRead(Stream_Master_Client $client){
-        $this->events->fireEvent('clientRead',$client);
+        $this->events->emit('clientRead',array($client));
     }
 }
