@@ -54,6 +54,11 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this;
     }
     
+    public function removeEvent($function){
+        $this->events->removeEvent($function);
+        return $this;
+    }
+    
     /**
      * get internal ID for given client
      * 
@@ -167,13 +172,16 @@ class Stream_Master_Standalone extends Stream_Master{
     /**
      * set time when to time out in seconds (relative time offset)
      * 
-     * @param float $seconds
+     * @param float|NULL $seconds
      * @return Stream_Master_Standalone $this (cainable)
      * @uses microtime()
      * @uses Stream_Master_Standalone::setTimeout()
      */
     public function setTimeoutIn($seconds){
-        return $this->setTimeout($seconds + microtime(true));
+        if($seconds !== NULL){
+            $seconds = $seconds + microtime(true);
+        }
+        return $this->setTimeout($seconds);
     }
     
     /**
