@@ -56,6 +56,10 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this;
     }
     
+    public function removeEvent($name,$function){
+        $this->events->removeListener($name,$function);
+    }
+    
     /**
      * get internal ID for given client
      * 
