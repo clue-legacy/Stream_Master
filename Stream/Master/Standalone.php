@@ -56,8 +56,17 @@ class Stream_Master_Standalone extends Stream_Master{
         return $this;
     }
     
-    public function removeEvent($name,$function){
-        $this->events->removeListener($name,$function);
+    /**
+     * remove (previously registered) event handler
+     *
+     * @param string   $name
+     * @param callback $function
+     * @return Stream_Master_Standalone $this (chainable)
+     */
+    public function removeEvent($name, $function)
+    {
+        $this->events->removeListener($name, $function);
+        return $this;
     }
     
     /**
